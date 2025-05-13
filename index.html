@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="style/style.css">
+
+    <style type="text/css" media="print">
+        .noprint {
+            display: none
+        }
+        
+        .print {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header class="el-header noprint">
+            <div class="icon-btns">
+                <i class="icon-list" @click="changeLeftMenu"></i>
+                <i class="icon-skip_previous" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('first')"></i>
+                <i class="icon-play_arrow prev-icon" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('prev')"></i>
+                <i class="icon-play_arrow" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('next')"></i>
+                <i class="icon-skip_next" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('last')"></i>
+                <select v-model="currentPage">
+                    <option v-for="page in pageNum" v-bind:value="page">page {{ page }}</option>
+                </select>
+                <i class="icon-zoom_in" v-bind:class="{'disabled': zoomNum == 2}" @click="modifyZoom('in')"></i>
+                <select v-model="zoomNum">
+                    <option value="0.5">50%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.2">120%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.4">140%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.6">160%</option>
+                    <option value="1.7">170%</option>
+                    <option value="1.8">180%</option>
+                    <option value="1.9">190%</option>
+                    <option value="2.0">200%</option>
+                </select>
+                <i class="icon-zoom_out" v-bind:class="{'disabled': zoomNum == 0.5}" @click="modifyZoom('out')"></i>
+                <i class="icon-format_align_left" @click="textAlign = 'left'"></i>
+                <i class="icon-format_align_center" @click="textAlign = 'center'"></i>
+                <i class="icon-format_align_right" @click="textAlign = 'right'"></i>
+                <i class="icon-print" @click="window.print()"></i>
+            </div>
+        </header>
+
+        <aside class="noprint" width="240px" v-show="ifMenuShow">
+            <nav class="tabNav">
+                <ul>
+                    <li v-bind:class="{ 'curr': currentNav == 0 }" @click="currentNav = 0">Page</li>
+                    <li v-bind:class="{ 'curr': currentNav == 1 }" @click="currentNav = 1">Bookmark</li>
+                </ul>
+
+                <div class="clear"></div>
+            </nav>
+
+            <div class="tab-conent scrollbar" v-bind:style="{ height: asideHeight + 'px' }">
+
+            <section v-show="currentNav == 0">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-file-text2"></i> page {{ page }}</li>
+                </ul>
+            </section>
+
+            <section v-show="currentNav == 1">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-turned_in_not"></i> Bookmark {{ page }}</li>
+                </ul>
+            </section>
+        </div>
+
+        </aside>
+        <div class="main scrollbar noprint"  v-bind:style="{ height: mainHeight + 'px' }" v-bind:class="{ 'mainLeftM': ifMenuShow, 'aleft': textAlign === 'left','acenter': textAlign === 'center','aright': textAlign === 'right'}">
+            <div class="conent" v-html="pageContent" v-bind:style="zoomStyle"></div>
+
+            <div class="clear"></div>
+        </div>
+
+        <!--专门只为打印的内容-->
+        <div class="conent print" style="display:none" v-html="pageContent"></div>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="js/vue.min.js"></script>
+<script>
+
+var app = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                // visible: false,
+                isCollapse: false,
+                currentNav: 0,
+                activeName2: 'first',
+                pageNum: 1, 
+                currentPage: 1,
+                pageContent: '',
+                asideHeight: 300,
+                mainHeight: 300,
+                ifMenuShow: true,
+                zoomNum: '1.0',
+                textAlign: 'left',
+                zoomStyle: {},
+                pageDatas: ['<div><div style="position:absolute;top:128.089478px;left:819.643311px"><nobr><img height="55.000000" width="95.000000" src ="bgimg/bg00001.jpg"/><br/></nobr></div><div style="position:absolute;top:96.745033px;left:870.019409px"><nobr><img height="55.000000" width="90.000000" src ="bgimg/bg00002.jpg"/><br/></nobr></div><p><span style="position:absolute;top:225.497040px;left:275.889313px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Philip Goad </span></nobr></span></p><p><span style="position:absolute;top:302.864288px;left:279.654541px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#F3F3F3;writing-mode: horizontal-tb;">Strategic Service Design </span></nobr></span></p><div style="position:absolute;top:204.277222px;left:821.646301px"><nobr><img height="55.000000" width="139.000000" src ="bgimg/bg00003.jpg"/><br/></nobr></div><div style="position:absolute;top:206.014114px;left:870.019409px"><nobr><img height="55.000000" width="90.000000" src ="bgimg/bg00004.jpg"/><br/></nobr></div><div style="position:absolute;top:313.546356px;left:821.646301px"><nobr><img height="55.000000" width="95.000000" src ="bgimg/bg00005.jpg"/><br/></nobr></div><div style="position:absolute;top:282.201782px;left:870.984680px"><nobr><img height="55.000000" width="90.000000" src ="bgimg/bg00006.jpg"/><br/></nobr></div><div style="position:absolute;top:391.470856px;left:870.984497px"><nobr><img height="55.000000" width="90.000000" src ="bgimg/bg00007.jpg"/><br/></nobr></div></div>','<div><p><span style="position:absolute;top:252.436417px;left:82.547821px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EF6F6C;writing-mode: horizontal-tb;">Transformation |Reimagination | Ventures</span></nobr></span></p></div>','<div><div style="position:absolute;top:177.437012px;left:251.348602px"><nobr><img height="132.000000" width="152.000000" src ="bgimg/bg00008.jpg"/><br/></nobr></div><p><span style="position:absolute;top:59.177410px;left:320.444458px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">What motivates me </span></nobr></span></p><p><span style="position:absolute;top:149.827347px;left:393.479095px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">Imagining something </span></nobr></span></p><p><span style="position:absolute;top:166.909424px;left:437.006104px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">better</span></nobr></span></p><p><span style="position:absolute;top:229.490204px;left:286.998047px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">New complex </span></nobr></span></p><p><span style="position:absolute;top:246.558945px;left:299.348511px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">problems</span></nobr></span></p><div style="position:absolute;top:105.259239px;left:379.526428px"><nobr><img height="132.000000" width="152.000000" src ="bgimg/bg00009.jpg"/><br/></nobr></div><div style="position:absolute;top:177.437012px;left:507.704224px"><nobr><img height="132.000000" width="152.000000" src ="bgimg/bg00010.jpg"/><br/></nobr></div><p><span style="position:absolute;top:232.455872px;left:524.193726px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">Pressure/ Deadlines</span></nobr></span></p><div style="position:absolute;top:321.298065px;left:250.512482px"><nobr><img height="135.000000" width="154.000000" src ="bgimg/bg00011.jpg"/><br/></nobr></div><div style="position:absolute;top:248.612335px;left:379.526428px"><nobr><img height="132.000000" width="152.000000" src ="bgimg/bg00012.jpg"/><br/></nobr></div><p><span style="position:absolute;top:299.355652px;left:432.292877px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">People/</span></nobr></span></p><p><span style="position:absolute;top:316.437714px;left:422.879822px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">Interaction</span></nobr></span></p><div style="position:absolute;top:390.468475px;left:378.690216px"><nobr><img height="135.000000" width="154.000000" src ="bgimg/bg00013.jpg"/><br/></nobr></div><div style="position:absolute;top:321.792603px;left:507.704224px"><nobr><img height="133.000000" width="152.000000" src ="bgimg/bg00014.jpg"/><br/></nobr></div><p><span style="position:absolute;top:373.538361px;left:555.944458px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">Making it </span></nobr></span></p><p><span style="position:absolute;top:390.620453px;left:561.178345px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EEEEEE;writing-mode: horizontal-tb;">hapen</span></nobr></span></p></div>','<div><p><span style="position:absolute;top:40.825562px;left:420.115997px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Conceptualise</span></nobr></span></p><div style="position:absolute;top:53.803303px;left:449.278473px"><nobr><img height="45.000000" width="25.000000" src ="bgimg/bg00015.jpg"/><br/></nobr></div><p><span style="position:absolute;top:139.227905px;left:215.138397px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Imagine</span></nobr></span></p><p><span style="position:absolute;top:126.996132px;left:669.194824px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Think</span></nobr></span></p><p><span style="position:absolute;top:269.762756px;left:163.159622px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Influence</span></nobr></span></p><div style="position:absolute;top:263.328217px;left:240.086807px"><nobr><img height="25.000000" width="45.000000" src ="bgimg/bg00016.jpg"/><br/></nobr></div><div style="position:absolute;top:74.182701px;left:260.361115px"><nobr><img height="402.000000" width="402.000000" src ="bgimg/bg00017.jpg"/><br/></nobr></div><p><span style="position:absolute;top:266.914093px;left:371.154785px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">How I work</span></nobr></span></p><div style="position:absolute;top:247.317032px;left:619.458740px"><nobr><img height="45.000000" width="83.000000" src ="bgimg/bg00018.jpg"/><br/></nobr></div><p><span style="position:absolute;top:260.834106px;left:713.589722px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Investigate/</span></nobr></span></p><p><span style="position:absolute;top:277.902771px;left:726.701294px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Explore</span></nobr></span></p><p><span style="position:absolute;top:414.211914px;left:223.149521px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Make</span></nobr></span></p><p><span style="position:absolute;top:414.704742px;left:636.015503px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Improve</span></nobr></span></p><div style="position:absolute;top:453.043457px;left:449.342865px"><nobr><img height="45.000000" width="25.000000" src ="bgimg/bg00019.jpg"/><br/></nobr></div><p><span style="position:absolute;top:498.653198px;left:437.406677px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Develop</span></nobr></span></p></div>','<div><p><span style="position:absolute;top:276.320587px;left:412.278473px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#EF6F6C;writing-mode: horizontal-tb;">Projects</span></nobr></span></p></div>','<div><p><span style="position:absolute;top:235.160400px;left:170.503143px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Inovation for a payment provider </span></nobr></span></p></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00020.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00021.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00022.jpg"/><br/></nobr></div></div>','<div><p><span style="position:absolute;top:235.160400px;left:140.327957px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Product innovation sprints in NYC for </span></nobr></span></p><p><span style="position:absolute;top:307.471832px;left:263.805878px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">a new streaming service </span></nobr></span></p></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00023.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00024.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00025.jpg"/><br/></nobr></div></div>','<div><p><span style="position:absolute;top:235.160400px;left:150.208328px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Developing a market oportunity for </span></nobr></span><span style="position:absolute;top:307.471832px;left:193.227997px"><nobr>a Trade Finance custody service </span></nobr></span></p></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00026.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00027.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00028.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00029.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00030.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00031.jpg"/><br/></nobr></div></div>','<div><p><span style="position:absolute;top:235.160400px;left:163.052826px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Service Design coaching for fintech </span></nobr></span></p><p><span style="position:absolute;top:307.471832px;left:406.897705px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">startups</span></nobr></span></p></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00032.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00033.jpg"/><br/></nobr></div></div>','<div><p><span style="position:absolute;top:235.160400px;left:183.855011px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">End to end experience design for </span></nobr></span><span style="position:absolute;top:307.471832px;left:162.225006px"><nobr>customer-led telco transformation. </span></nobr></span></p></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00034.jpg"/><br/></nobr></div></div>','<div><div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="540.000000" width="960.000000" src ="bgimg/bg00035.jpg"/><br/></nobr></div></div>','<div><p><span style="position:absolute;top:259.259735px;left:384.426544px"><nobr><span class="" style="font-family:Arial;font-style:normal;font-weight:normal;color:#FFFFFF;writing-mode: horizontal-tb;">Thank You </span></nobr></span></p></div>']
+            }
+        },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.pageNum = this.pageDatas.length;
+                this.pageContent = this.pageDatas[0];
+
+                this.setLeftMenuHeight();
+            })
+        },
+        watch: {
+            'currentPage': function(newVal, oldValue) {
+                // console.log('newVal ' + newVal, 'oldValue ' + oldValue);
+                if (newVal) {
+                    this.pageContent = this.pageDatas[this.currentPage - 1];
+                }
+            },
+            'zoomNum': function(newVal, oldValue) {
+                if (newVal) {
+                    this.zoomStyle = {
+                        'transform': 'scale(' + newVal + ')',
+                        '-webkit-transform': 'scale(' + newVal + ')',
+                        '-ms-transform': 'scale(' + newVal + ')',
+                        '-moz-transform': 'scale(' + newVal + ')',
+                        '-o-transform': 'scale(' + newVal + ')'
+                    }
+                }
+            }
+        },
+        methods: {
+            
+            changeCurrentPage: function(methods) {
+                switch (methods) {
+                    case 'first':
+                        this.currentPage = 1;
+                        break;
+                    case 'prev':
+                        if (this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        break;
+                    case 'next':
+                        if (this.currentPage < this.pageNum) {
+                            this.currentPage += 1;
+                        }
+                        break;
+                    case 'last':
+                        this.currentPage = this.pageNum;
+                        break;
+                }
+            },
+
+            gotoPage: function(page) {
+                console.log(page);
+                this.currentPage = page;
+            },
+            modifyZoom: function(type) {
+                switch (type) {
+                    case 'in':
+                        if (this.zoomNum < 2) {
+                            // this.zoomNum = (this.zoomNum + 0.1).toFixed(1);
+                            this.zoomNum = (parseFloat(this.zoomNum) + 0.1).toFixed(1);
+                        }
+                        break;
+                    case 'out':
+                        if (this.zoomNum > 0.5) {
+                            this.zoomNum = (parseFloat(this.zoomNum) - 0.1).toFixed(1);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                console.log(this.zoomNum);
+            },
+            setLeftMenuHeight: function() {
+                // this.asideHeight = document.body.scrollHeight - 60;
+                this.mainHeight = document.documentElement.clientHeight - 60 - 20;
+                // 60为头部导航高度， 46为menu高度， 40为上下padding
+                this.asideHeight = this.mainHeight - 20 - 46;
+            },
+            changePage: function(page) {
+                this.currentPage = page;
+                // this.pageContent = this.pageDatas[page - 1];
+            },
+            changeLeftMenu: function() {
+                this.ifMenuShow = !this.ifMenuShow;
+            }
+        }
+    });
+
+function gotoPage(page) {
+    console.log(page);
+    app.gotoPage(page);
+}
+
+</script>
+
+</html>
